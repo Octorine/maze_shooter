@@ -1,10 +1,12 @@
 use std::f32::consts::PI;
 
+use bevy::gltf::Gltf;
 use bevy::prelude::*;
 use bevy::{ecs::system::Commands, prelude::ResMut};
-
 #[derive(Default)]
 pub struct Level;
+#[derive(Resource)]
+pub struct Walls(Handle<Gltf>);
 
 impl Plugin for Level {
     fn build(&self, app: &mut bevy::prelude::App) {
@@ -16,10 +18,11 @@ fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
+    assets: ResMut<AssetServer>,
 ) {
     // camera
     commands.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(0.0, 300.0, 0.0).looking_at(Vec3::ZERO, Vec3::Z),
+        transform: Transform::from_xyz(0.0, 150.0, 0.0).looking_at(Vec3::ZERO, Vec3::Z),
         ..default()
     });
 
@@ -51,81 +54,83 @@ fn setup(
         ),
         ..default()
     });
-    spawn_walls(commands, meshes, materials);
+    spawn_walls(commands, assets);
 }
 
-fn spawn_walls(
-    commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    materials: ResMut<Assets<StandardMaterial>>,
-) -> () {
+fn spawn_walls(commands: Commands, assets: ResMut<AssetServer>) -> () {
     let mut maze = maze::Maze::new(30, 20);
 
     maze.add_walls();
-    let mut ms = WallSpawner::new(commands, maze.height, maze.width, meshes, materials);
+    let mut ms = WallSpawner::new(commands, maze.height, maze.width, assets);
 
     // Draw the top row
 
-    ms.draw_vertical_wall(0, 0);
+    //   ms.draw_vertical_wall(0, 0);
     for i in 0..maze.width {
         ms.draw_horizontal_wall(i, 0);
     }
     ms.draw_vertical_wall(maze.width, 0);
 
-    for j in 0..maze.height - 1 {
-        // Draw the vertical bars.  One at the beginning, one at
+    for j in 0..maze.height {
+        // Draw the bars.  One at the beginning, one at
         // the end, and one wherever there's an edge between
         // neighboring cells.
-        ms.draw_vertical_wall(0, j + 1);
+        ms.draw_vertical_wall(0, j);
 
         for i in 0..maze.width - 1 {
+            let mut edges = 0;
+
             if maze.has_edge((i, j), (i + 1, j)) {
+                edges += 1;
                 ms.draw_vertical_wall(i + 1, j);
             }
             if maze.has_edge((i, j), (i, j + 1)) {
+                edges += 1;
                 ms.draw_horizontal_wall(i, j + 1);
             }
+            if i > 0 && maze.has_edge((i - 1, j), (i, j)) {
+                edges += 1;
+            }
+            if j > 0 && maze.has_edge((i, j - 1), (i, j)) {
+                edges += 1;
+            }
+            if edges > 1 || i == 0 || j == 0 || i == maze.width {
+                ms.draw_post(i, j);
+            }
         }
-        ms.draw_vertical_wall(maze.width, j + 1);
+        ms.draw_post(maze.width, j);
+        ms.draw_vertical_wall(maze.width, j);
     }
-    // Draw the bottom row
-    //    ms.draw_vertical_wall(0, maze.height);
+    // Draw the top row
     for i in 0..maze.width {
         ms.draw_horizontal_wall(i, maze.height);
+        ms.draw_post(i, maze.height);
     }
-    //  ms.draw_vertical_wall(maze.width, maze.height);
+    ms.draw_post(maze.width, maze.height);
 }
-struct WallSpawner<'a, 'w, 'c> {
+struct WallSpawner<'w, 'c> {
     height: usize,
     width: usize,
     wall_height: f32,
     wall_length: f32,
     wall_thickness: f32,
     commands: Commands<'w, 'c>,
-    meshes: ResMut<'a, Assets<Mesh>>,
-    mesh: Handle<Mesh>,
-    materials: ResMut<'a, Assets<StandardMaterial>>,
+    wall_scene: Handle<Scene>,
+    post_scene: Handle<Scene>,
 }
 
-impl<'a, 'w, 'c> WallSpawner<'a, 'w, 'c> {
+impl<'w, 'c> WallSpawner<'w, 'c> {
     pub fn new(
         commands: Commands<'w, 'c>,
         height: usize,
         width: usize,
-        mut meshes: ResMut<'a, Assets<Mesh>>,
-        materials: ResMut<'a, Assets<StandardMaterial>>,
-    ) -> WallSpawner<'a, 'w, 'c> {
-        let wall_length = 10.0;
+        assets: ResMut<AssetServer>,
+    ) -> WallSpawner<'w, 'c> {
+        let wall_length = 4.0;
         let wall_height = 6.0;
         let wall_thickness = 1.0;
-        let mesh = meshes.add(Mesh::from(shape::Box {
-            min_x: -wall_length / 2.0,
-            min_y: -wall_height / 2.0,
-            min_z: -wall_thickness / 2.0,
-            max_x: wall_length / 2.0,
-            max_y: wall_height / 2.0,
-            max_z: wall_thickness / 2.0,
-        }));
+        let wall_scene = assets.load("Walls.gltf#Scene3");
+        let post_scene = assets.load("Walls.gltf#Scene2");
         WallSpawner {
             height,
             width,
@@ -133,62 +138,60 @@ impl<'a, 'w, 'c> WallSpawner<'a, 'w, 'c> {
             wall_length,
             wall_thickness,
             commands,
-            meshes,
-            mesh,
-            materials,
+            wall_scene,
+            post_scene,
         }
     }
-    pub fn draw_horizontal_wall(&mut self, x: usize, y: usize) {
+    fn draw_post(&mut self, x: usize, y: usize) {
         let maze_width =
-            self.width as f32 * self.wall_length + (1 + self.width) as f32 * self.wall_thickness;
+            self.width as f32 * (self.wall_length + self.wall_thickness) + self.wall_thickness;
         let maze_height =
-            self.height as f32 * self.wall_length + (1 + self.height) as f32 * self.wall_thickness;
-        self.commands.spawn(PbrBundle {
-            mesh: self.mesh.clone(),
-            material: self.materials.add(StandardMaterial {
-                base_color: Color::rgb(0.95, 0.95, 0.95),
-                unlit: false,
-                ..default()
-            }),
-
+            self.height as f32 * (self.wall_length + self.wall_thickness) + self.wall_thickness;
+        self.commands.spawn(SceneBundle {
+            scene: self.post_scene.clone(),
+            transform: Transform::from_xyz(
+                maze_width / -2.0 + x as f32 * (self.wall_thickness + self.wall_length),
+                self.wall_height / 2.0,
+                maze_height / -2.0 + (self.wall_thickness + self.wall_length) * y as f32,
+            ),
+            ..Default::default()
+        });
+    }
+    fn draw_horizontal_wall(&mut self, x: usize, y: usize) {
+        let maze_width =
+            self.width as f32 * (self.wall_length + self.wall_thickness) + self.wall_thickness;
+        let maze_height =
+            self.height as f32 * (self.wall_length + self.wall_thickness) + self.wall_thickness;
+        self.commands.spawn(SceneBundle {
+            scene: self.wall_scene.clone(),
             transform: Transform::from_xyz(
                 maze_width / -2.0
                     + self.wall_thickness
                     + x as f32 * (self.wall_thickness + self.wall_length)
                     + self.wall_length / 2.0,
                 self.wall_height / 2.0,
-                maze_height / -2.0
-                    + self.wall_thickness / 2.0
-                    + (self.wall_thickness + self.wall_length) * y as f32,
+                maze_height / -2.0 + (self.wall_thickness + self.wall_length) * y as f32,
             ),
-            ..default()
+            ..Default::default()
         });
     }
     pub fn draw_vertical_wall(&mut self, x: usize, y: usize) {
         let maze_width =
-            self.width as f32 * self.wall_length + (1 + self.width) as f32 * self.wall_thickness;
+            self.width as f32 * (self.wall_length + self.wall_thickness) + self.wall_thickness;
         let maze_height =
-            self.height as f32 * self.wall_length + (1 + self.height) as f32 * self.wall_thickness;
-        self.commands.spawn(PbrBundle {
-            mesh: self.mesh.clone(),
-            material: self.materials.add(StandardMaterial {
-                base_color: Color::rgb(0.95, 0.95, 0.95),
-                unlit: false,
-                ..default()
-            }),
-
+            self.height as f32 * (self.wall_length + self.wall_thickness) + self.wall_thickness;
+        self.commands.spawn(SceneBundle {
+            scene: self.wall_scene.clone(),
             transform: Transform::from_xyz(
-                maze_width / -2.0
-                    + self.wall_thickness / 2.0
-                    + x as f32 * (self.wall_thickness + self.wall_length),
+                maze_width / -2.0 + x as f32 * (self.wall_thickness + self.wall_length),
                 self.wall_height / 2.0,
                 maze_height / -2.0
                     + self.wall_length / 2.0
                     + self.wall_thickness
                     + (self.wall_thickness + self.wall_length) * y as f32,
             )
-            .with_rotation(Quat::from_rotation_y(PI / 2.0)),
-            ..default()
+            .with_rotation(Quat::from_euler(EulerRot::XYZ, 0.0, PI / 2.0, 0.0)),
+            ..Default::default()
         });
     }
 }
