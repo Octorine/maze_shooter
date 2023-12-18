@@ -150,9 +150,13 @@ impl<'w, 'c> WallSpawner<'w, 'c> {
         self.commands.spawn(SceneBundle {
             scene: self.post_scene.clone(),
             transform: Transform::from_xyz(
-                maze_width / -2.0 + x as f32 * (self.wall_thickness + self.wall_length),
+                maze_width / -2.0
+                    + x as f32 * (self.wall_thickness + self.wall_length)
+                    + self.wall_thickness * 0.5,
                 self.wall_height / 2.0,
-                maze_height / -2.0 + (self.wall_thickness + self.wall_length) * y as f32,
+                maze_height / -2.0
+                    + (self.wall_thickness + self.wall_length) * y as f32
+                    + self.wall_thickness * 0.5,
             ),
             ..Default::default()
         });
@@ -170,7 +174,9 @@ impl<'w, 'c> WallSpawner<'w, 'c> {
                     + x as f32 * (self.wall_thickness + self.wall_length)
                     + self.wall_length / 2.0,
                 self.wall_height / 2.0,
-                maze_height / -2.0 + (self.wall_thickness + self.wall_length) * y as f32,
+                maze_height / -2.0
+                    + (self.wall_thickness + self.wall_length) * y as f32
+                    + self.wall_thickness * 0.5,
             ),
             ..Default::default()
         });
@@ -183,7 +189,9 @@ impl<'w, 'c> WallSpawner<'w, 'c> {
         self.commands.spawn(SceneBundle {
             scene: self.wall_scene.clone(),
             transform: Transform::from_xyz(
-                maze_width / -2.0 + x as f32 * (self.wall_thickness + self.wall_length),
+                maze_width / -2.0
+                    + x as f32 * (self.wall_thickness + self.wall_length)
+                    + self.wall_thickness * 0.5,
                 self.wall_height / 2.0,
                 maze_height / -2.0
                     + self.wall_length / 2.0
