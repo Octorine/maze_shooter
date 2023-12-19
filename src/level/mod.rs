@@ -68,6 +68,7 @@ fn spawn_walls(commands: Commands, assets: ResMut<AssetServer>) -> () {
     //   ms.draw_vertical_wall(0, 0);
     for i in 0..maze.width {
         ms.draw_horizontal_wall(i, 0);
+        ms.draw_post(i, 0);
     }
     ms.draw_vertical_wall(maze.width, 0);
 
@@ -88,17 +89,18 @@ fn spawn_walls(commands: Commands, assets: ResMut<AssetServer>) -> () {
                 edges += 1;
                 ms.draw_horizontal_wall(i, j + 1);
             }
-            if i > 0 && maze.has_edge((i - 1, j), (i, j)) {
+            if i > 0 && maze.has_edge((i, j + 1), (i + 1, j + 1)) {
                 edges += 1;
             }
-            if j > 0 && maze.has_edge((i, j - 1), (i, j)) {
+            if j > 0 && maze.has_edge((i + 1, j), (i + 1, j + 1)) {
                 edges += 1;
             }
-            if edges > 1 || i == 0 || j == 0 || i == maze.width {
-                ms.draw_post(i, j);
+            if edges > 1 || i == 0 || j == 0 || i == maze.width - 1 || j == maze.height - 1 {
+                ms.draw_post(i + 1, j + 1);
             }
         }
         ms.draw_post(maze.width, j);
+        ms.draw_post(0, j);
         ms.draw_vertical_wall(maze.width, j);
     }
     // Draw the top row
