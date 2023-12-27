@@ -3,6 +3,7 @@ use std::f32::consts::PI;
 use bevy::gltf::Gltf;
 use bevy::prelude::*;
 use bevy::{ecs::system::Commands, prelude::ResMut};
+use bevy_rapier3d::prelude::*;
 #[derive(Default)]
 pub struct Level;
 #[derive(Resource)]
@@ -27,15 +28,18 @@ fn setup(
     });
 
     // plane
-    commands.spawn(PbrBundle {
-        mesh: meshes.add(shape::Plane::from_size(500.0).into()),
-        material: materials.add(StandardMaterial {
-            base_color: Color::rgb(0.2, 1.0, 0.2),
-            perceptual_roughness: 0.8,
+    commands
+        .spawn(PbrBundle {
+            mesh: meshes.add(shape::Plane::from_size(500.0).into()),
+            material: materials.add(StandardMaterial {
+                base_color: Color::rgb(0.2, 1.0, 0.2),
+                perceptual_roughness: 0.8,
+                ..default()
+            }),
             ..default()
-        }),
-        ..default()
-    });
+        })
+        .insert(RigidBody::Fixed)
+        .insert(Collider::cuboid(500.0, 0.01, 500.0));
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
             shadows_enabled: true,
@@ -168,40 +172,54 @@ impl<'w, 'c> WallSpawner<'w, 'c> {
             self.width as f32 * (self.wall_length + self.wall_thickness) + self.wall_thickness;
         let maze_height =
             self.height as f32 * (self.wall_length + self.wall_thickness) + self.wall_thickness;
-        self.commands.spawn(SceneBundle {
-            scene: self.wall_scene.clone(),
-            transform: Transform::from_xyz(
-                maze_width / -2.0
-                    + self.wall_thickness
-                    + x as f32 * (self.wall_thickness + self.wall_length)
-                    + self.wall_length / 2.0,
-                self.wall_height / 2.0,
-                maze_height / -2.0
-                    + (self.wall_thickness + self.wall_length) * y as f32
-                    + self.wall_thickness * 0.5,
-            ),
-            ..Default::default()
-        });
+        self.commands
+            .spawn(SceneBundle {
+                scene: self.wall_scene.clone(),
+                transform: Transform::from_xyz(
+                    maze_width / -2.0
+                        + self.wall_thickness
+                        + x as f32 * (self.wall_thickness + self.wall_length)
+                        + self.wall_length / 2.0,
+                    self.wall_height / 2.0,
+                    maze_height / -2.0
+                        + (self.wall_thickness + self.wall_length) * y as f32
+                        + self.wall_thickness * 0.5,
+                ),
+                ..Default::default()
+            })
+            .insert(RigidBody::Fixed)
+            .insert(Collider::cuboid(
+                self.wall_length,
+                self.wall_height,
+                self.wall_thickness,
+            ));
     }
     pub fn draw_vertical_wall(&mut self, x: usize, y: usize) {
         let maze_width =
             self.width as f32 * (self.wall_length + self.wall_thickness) + self.wall_thickness;
         let maze_height =
             self.height as f32 * (self.wall_length + self.wall_thickness) + self.wall_thickness;
-        self.commands.spawn(SceneBundle {
-            scene: self.wall_scene.clone(),
-            transform: Transform::from_xyz(
-                maze_width / -2.0
-                    + x as f32 * (self.wall_thickness + self.wall_length)
-                    + self.wall_thickness * 0.5,
-                self.wall_height / 2.0,
-                maze_height / -2.0
-                    + self.wall_length / 2.0
-                    + self.wall_thickness
-                    + (self.wall_thickness + self.wall_length) * y as f32,
-            )
-            .with_rotation(Quat::from_euler(EulerRot::XYZ, 0.0, PI / 2.0, 0.0)),
-            ..Default::default()
-        });
+        self.commands
+            .spawn(SceneBundle {
+                scene: self.wall_scene.clone(),
+                transform: Transform::from_xyz(
+                    maze_width / -2.0
+                        + x as f32 * (self.wall_thickness + self.wall_length)
+                        + self.wall_thickness * 0.5,
+                    self.wall_height / 2.0,
+                    maze_height / -2.0
+                        + self.wall_length / 2.0
+                        + self.wall_thickness
+                        + (self.wall_thickness + self.wall_length) * y as f32,
+                )
+                .with_rotation(Quat::from_euler(EulerRot::XYZ, 0.0, PI / 2.0, 0.0)),
+                ..Default::default()
+            })
+            .insert(RigidBody::Fixed)
+            .insert(Collider::cuboid(
+                self.wall_length,
+                self.wall_height,
+                self.wall_thickness,
+            ));
     }
 }
