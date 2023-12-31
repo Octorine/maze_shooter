@@ -23,13 +23,14 @@ fn setup(
 ) {
     // camera
     commands.spawn(Camera3dBundle {
-        transform: Transform::from_xyz(0.0, 150.0, 0.0).looking_at(Vec3::ZERO, Vec3::Z),
+        transform: Transform::from_xyz(3.5, 25.0, 3.5).looking_at(Vec3::ZERO, Vec3::Z),
         ..default()
     });
-
+    crate::player::spawn_player(&mut commands, &assets, 3.5, 3.5);
     // plane
     commands
         .spawn(PbrBundle {
+            transform: Transform::from_xyz(0.0, 3.0, 0.0),
             mesh: meshes.add(shape::Plane::from_size(500.0).into()),
             material: materials.add(StandardMaterial {
                 base_color: Color::rgb(0.2, 1.0, 0.2),
@@ -50,7 +51,7 @@ fn setup(
         transform: Transform::IDENTITY.looking_to(
             Vec3 {
                 x: 1.0,
-                y: -0.75,
+                y: -2.0,
                 z: 1.0,
             }
             .normalize(),
@@ -153,19 +154,26 @@ impl<'w, 'c> WallSpawner<'w, 'c> {
             self.width as f32 * (self.wall_length + self.wall_thickness) + self.wall_thickness;
         let maze_height =
             self.height as f32 * (self.wall_length + self.wall_thickness) + self.wall_thickness;
-        self.commands.spawn(SceneBundle {
-            scene: self.post_scene.clone(),
-            transform: Transform::from_xyz(
-                maze_width / -2.0
-                    + x as f32 * (self.wall_thickness + self.wall_length)
-                    + self.wall_thickness * 0.5,
+        self.commands
+            .spawn(SceneBundle {
+                scene: self.post_scene.clone(),
+                transform: Transform::from_xyz(
+                    maze_width / -2.0
+                        + x as f32 * (self.wall_thickness + self.wall_length)
+                        + self.wall_thickness * 0.5,
+                    self.wall_height / 2.0,
+                    maze_height / -2.0
+                        + (self.wall_thickness + self.wall_length) * y as f32
+                        + self.wall_thickness * 0.5,
+                ),
+                ..Default::default()
+            })
+            .insert(RigidBody::Fixed)
+            .insert(Collider::cuboid(
+                self.wall_thickness / 2.0,
                 self.wall_height / 2.0,
-                maze_height / -2.0
-                    + (self.wall_thickness + self.wall_length) * y as f32
-                    + self.wall_thickness * 0.5,
-            ),
-            ..Default::default()
-        });
+                self.wall_thickness / 2.0,
+            ));
     }
     fn draw_horizontal_wall(&mut self, x: usize, y: usize) {
         let maze_width =
@@ -189,9 +197,9 @@ impl<'w, 'c> WallSpawner<'w, 'c> {
             })
             .insert(RigidBody::Fixed)
             .insert(Collider::cuboid(
-                self.wall_length,
-                self.wall_height,
-                self.wall_thickness,
+                self.wall_length / 2.0,
+                self.wall_height / 2.0,
+                self.wall_thickness / 2.0,
             ));
     }
     pub fn draw_vertical_wall(&mut self, x: usize, y: usize) {
@@ -217,9 +225,9 @@ impl<'w, 'c> WallSpawner<'w, 'c> {
             })
             .insert(RigidBody::Fixed)
             .insert(Collider::cuboid(
-                self.wall_length,
-                self.wall_height,
-                self.wall_thickness,
+                self.wall_length / 2.0,
+                self.wall_height / 2.0,
+                self.wall_thickness / 2.0,
             ));
     }
 }
