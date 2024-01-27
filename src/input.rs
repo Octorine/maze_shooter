@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use crate::player;
 use bevy::{prelude::*, time::TimePlugin};
 use bevy_rapier3d::prelude::*;
@@ -24,15 +26,24 @@ pub fn input_bundle() -> InputManagerBundle<Action> {
             (KeyCode::A, Action::MoveLeft),
             (KeyCode::S, Action::MoveDown),
             (KeyCode::D, Action::MoveRight),
+            (KeyCode::Left, Action::AimLeft),
+            (KeyCode::Right, Action::AimRight),
+            (KeyCode::Up, Action::AimUp),
+            (KeyCode::Down, Action::AimDown),
         ]),
     }
 }
 
 pub fn move_player(
-    mut query: Query<(&ActionState<Action>, &mut KinematicCharacterController)>,
+    mut query: Query<(
+        &ActionState<Action>,
+        &mut KinematicCharacterController,
+        &mut player::Player,
+        &mut Transform,
+    )>,
     t: Res<Time>,
 ) {
-    let (action_state, mut player) = query.single_mut();
+    let (action_state, mut playerController, mut player, mut xform) = query.single_mut();
 
     // Each action has a button-like state of its own that you can check
     let mut xlat = Vec3::new(0.0, 0.0, 0.0);
@@ -49,7 +60,16 @@ pub fn move_player(
     if action_state.pressed(Action::MoveRight) {
         xlat.x -= 1.0;
     }
-    player.translation = Some(xlat.normalize_or_zero() * speed * t.delta_seconds());
+    playerController.translation = Some(xlat.normalize_or_zero() * speed * t.delta_seconds());
+    if action_state.pressed(Action::AimUp) {
+        xform.rotation = Quat::from_rotation_y(0.5 * PI);
+    } else if action_state.pressed(Action::AimDown) {
+        xform.rotation = Quat::from_rotation_y(1.5 * PI);
+    } else if action_state.pressed(Action::AimRight) {
+        xform.rotation = Quat::from_rotation_y(0.0);
+    } else if action_state.pressed(Action::AimLeft) {
+        xform.rotation = Quat::from_rotation_y(PI);
+    }
 }
 
 pub fn move_camera(

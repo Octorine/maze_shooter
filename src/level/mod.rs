@@ -8,6 +8,8 @@ use bevy_rapier3d::prelude::*;
 pub struct Level;
 #[derive(Resource)]
 pub struct Walls(Handle<Gltf>);
+#[derive(Component)]
+pub struct Wall;
 
 impl Plugin for Level {
     fn build(&self, app: &mut bevy::prelude::App) {
@@ -169,6 +171,7 @@ impl<'w, 'c> WallSpawner<'w, 'c> {
                 ..Default::default()
             })
             .insert(RigidBody::Fixed)
+            .insert(Wall)
             .insert(Collider::cuboid(
                 self.wall_thickness / 2.0,
                 self.wall_height / 2.0,
@@ -196,6 +199,7 @@ impl<'w, 'c> WallSpawner<'w, 'c> {
                 ..Default::default()
             })
             .insert(RigidBody::Fixed)
+            .insert(Wall)
             .insert(Collider::cuboid(
                 self.wall_length / 2.0,
                 self.wall_height / 2.0,
@@ -224,6 +228,7 @@ impl<'w, 'c> WallSpawner<'w, 'c> {
                 ..Default::default()
             })
             .insert(RigidBody::Fixed)
+            .insert(Wall)
             .insert(Collider::cuboid(
                 self.wall_length / 2.0,
                 self.wall_height / 2.0,
