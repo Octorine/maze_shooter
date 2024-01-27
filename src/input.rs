@@ -61,15 +61,18 @@ pub fn move_player(
         xlat.x -= 1.0;
     }
     playerController.translation = Some(xlat.normalize_or_zero() * speed * t.delta_seconds());
+    let mut aim = xform.rotation;
     if action_state.pressed(Action::AimUp) {
-        xform.rotation = Quat::from_rotation_y(0.5 * PI);
+        aim = Quat::from_rotation_y(0.5 * PI);
     } else if action_state.pressed(Action::AimDown) {
-        xform.rotation = Quat::from_rotation_y(1.5 * PI);
+        aim = Quat::from_rotation_y(1.5 * PI);
     } else if action_state.pressed(Action::AimRight) {
-        xform.rotation = Quat::from_rotation_y(0.0);
+        aim = Quat::from_rotation_y(0.0);
     } else if action_state.pressed(Action::AimLeft) {
-        xform.rotation = Quat::from_rotation_y(PI);
+        aim = Quat::from_rotation_y(PI);
     }
+    player.aim = aim.to_euler(EulerRot::XYZ).1;
+    xform.rotation = xform.rotation.slerp(aim, 0.1);
 }
 
 pub fn move_camera(
