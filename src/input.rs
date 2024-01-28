@@ -1,9 +1,13 @@
 use std::f32::consts::PI;
 
 use crate::player;
-use bevy::{prelude::*, time::TimePlugin};
+use bevy::{
+    input::gamepad::{GamepadAxisChangedEvent, GamepadButtonChangedEvent, GamepadButtonInput},
+    prelude::*,
+    time::TimePlugin,
+};
 use bevy_rapier3d::prelude::*;
-use leafwing_input_manager::prelude::*;
+use leafwing_input_manager::{prelude::*, user_input::InputKind};
 #[derive(Actionlike, PartialEq, Eq, Hash, Clone, Copy, Debug, Reflect)]
 pub enum Action {
     MoveLeft,
@@ -15,6 +19,8 @@ pub enum Action {
     AimUp,
     AimDown,
     Shoot,
+    Aim,
+    Move,
 }
 
 pub fn input_bundle() -> InputManagerBundle<Action> {
@@ -22,14 +28,16 @@ pub fn input_bundle() -> InputManagerBundle<Action> {
         action_state: ActionState::default(),
         // Describes how to convert from player inputs into those actions
         input_map: InputMap::new([
-            (KeyCode::W, Action::MoveUp),
-            (KeyCode::A, Action::MoveLeft),
-            (KeyCode::S, Action::MoveDown),
-            (KeyCode::D, Action::MoveRight),
-            (KeyCode::Left, Action::AimLeft),
-            (KeyCode::Right, Action::AimRight),
-            (KeyCode::Up, Action::AimUp),
-            (KeyCode::Down, Action::AimDown),
+            (InputKind::Keyboard(KeyCode::W), Action::MoveUp),
+            (InputKind::Keyboard(KeyCode::A), Action::MoveLeft),
+            (InputKind::Keyboard(KeyCode::S), Action::MoveDown),
+            (InputKind::Keyboard(KeyCode::D), Action::MoveRight),
+            (InputKind::Keyboard(KeyCode::Left), Action::AimLeft),
+            (InputKind::Keyboard(KeyCode::Right), Action::AimRight),
+            (InputKind::Keyboard(KeyCode::Up), Action::AimUp),
+            (InputKind::Keyboard(KeyCode::Down), Action::AimDown),
+            (InputKind::DualAxis(DualAxis::left_stick()), Action::Move),
+            (InputKind::DualAxis(DualAxis::right_stick()), Action::Aim),
         ]),
     }
 }
@@ -60,6 +68,9 @@ pub fn move_player(
     if action_state.pressed(Action::MoveRight) {
         xlat.x -= 1.0;
     }
+    let joystick_move = action_state.axis_pair(Action::Move).unwrap_or_default();
+    xlat.x -= joystick_move.x();
+    xlat.z += joystick_move.y();
     playerController.translation = Some(xlat.normalize_or_zero() * speed * t.delta_seconds());
     let mut aim = xform.rotation;
     if action_state.pressed(Action::AimUp) {
@@ -70,6 +81,14 @@ pub fn move_player(
         aim = Quat::from_rotation_y(0.0);
     } else if action_state.pressed(Action::AimLeft) {
         aim = Quat::from_rotation_y(PI);
+    } else if action_state.axis_pair(Action::Aim).is_some() {
+        let aim_joystick = action_state.axis_pair(Action::Aim).unwrap();
+        let aim_x = aim_joystick.x();
+        let aim_y = aim_joystick.y();
+        let magnitude = (aim_x * aim_x + aim_y * aim_y).sqrt();
+        if magnitude > 0.2 && aim_x.abs() > 0.0 {
+            aim = Quat::from_rotation_y(aim_y.atan2(aim_x));
+        }
     }
     player.aim = aim.to_euler(EulerRot::XYZ).1;
     xform.rotation = xform.rotation.slerp(aim, 0.1);
