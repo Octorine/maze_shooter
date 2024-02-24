@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use bevy::gltf::Gltf;
 use bevy::prelude::*;
 use bevy::{ecs::system::Commands, prelude::ResMut};
-use bevy_rapier3d::prelude::*;
+use bevy_xpbd_3d::prelude::*;
 #[derive(Default)]
 pub struct Level;
 #[derive(Resource)]
@@ -41,7 +41,7 @@ fn setup(
             }),
             ..default()
         })
-        .insert(RigidBody::Fixed)
+        .insert(RigidBody::Static)
         .insert(Collider::cuboid(500.0, 0.01, 500.0));
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
@@ -170,7 +170,7 @@ impl<'w, 'c> WallSpawner<'w, 'c> {
                 ),
                 ..Default::default()
             })
-            .insert(RigidBody::Fixed)
+            .insert(RigidBody::Static)
             .insert(Wall)
             .insert(Collider::cuboid(
                 self.wall_thickness / 2.0,
@@ -198,7 +198,7 @@ impl<'w, 'c> WallSpawner<'w, 'c> {
                 ),
                 ..Default::default()
             })
-            .insert(RigidBody::Fixed)
+            .insert(RigidBody::Static)
             .insert(Wall)
             .insert(Collider::cuboid(
                 self.wall_length / 2.0,
@@ -227,7 +227,7 @@ impl<'w, 'c> WallSpawner<'w, 'c> {
                 .with_rotation(Quat::from_euler(EulerRot::XYZ, 0.0, PI / 2.0, 0.0)),
                 ..Default::default()
             })
-            .insert(RigidBody::Fixed)
+            .insert(RigidBody::Static)
             .insert(Wall)
             .insert(Collider::cuboid(
                 self.wall_length / 2.0,

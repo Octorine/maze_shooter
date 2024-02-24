@@ -1,12 +1,13 @@
 use std::f32::consts::PI;
 
+use crate::character_controller as cc;
 use crate::player;
 use bevy::{
     input::gamepad::{GamepadAxisChangedEvent, GamepadButtonChangedEvent, GamepadButtonInput},
     prelude::*,
     time::TimePlugin,
 };
-use bevy_rapier3d::prelude::*;
+use bevy_xpbd_3d::prelude::*;
 use leafwing_input_manager::{prelude::*, user_input::InputKind};
 #[derive(Actionlike, PartialEq, Eq, Hash, Clone, Copy, Debug, Reflect)]
 pub enum Action {
@@ -45,17 +46,17 @@ pub fn input_bundle() -> InputManagerBundle<Action> {
 pub fn move_player(
     mut query: Query<(
         &ActionState<Action>,
-        &mut KinematicCharacterController,
+        &mut LinearVelocity,
         &mut player::Player,
         &mut Transform,
     )>,
     t: Res<Time>,
 ) {
-    let (action_state, mut playerController, mut player, mut xform) = query.single_mut();
+    let (action_state, mut player_velocity, mut player, mut xform) = query.single_mut();
 
     // Each action has a button-like state of its own that you can check
     let mut xlat = Vec3::new(0.0, 0.0, 0.0);
-    let speed = 5.0;
+    let speed = 500.0;
     if action_state.pressed(Action::MoveUp) {
         xlat.z += 1.0;
     }
@@ -71,7 +72,9 @@ pub fn move_player(
     let joystick_move = action_state.axis_pair(Action::Move).unwrap_or_default();
     xlat.x -= joystick_move.x();
     xlat.z += joystick_move.y();
-    playerController.translation = Some(xlat.normalize_or_zero() * speed * t.delta_seconds());
+    let vel = xlat.normalize_or_zero() * speed * t.delta_seconds();
+    player_velocity.0.x = vel.x;
+    player_velocity.0.z = vel.z;
     let mut aim = xform.rotation;
     if action_state.pressed(Action::AimUp) {
         aim = Quat::from_rotation_y(0.5 * PI);
@@ -95,8 +98,8 @@ pub fn move_player(
 }
 
 pub fn move_camera(
-    mut camera_query: Query<(&mut Transform, &Camera3d), Without<KinematicCharacterController>>,
-    player_query: Query<(&Transform, &KinematicCharacterController)>,
+    mut camera_query: Query<(&mut Transform, &Camera3d), Without<player::Player>>,
+    player_query: Query<(&Transform, &player::Player)>,
     time: Res<Time>,
 ) {
     let (player_transform, player) = player_query.single();
