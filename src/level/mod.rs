@@ -5,13 +5,13 @@ use bevy::prelude::*;
 use bevy::{ecs::system::Commands, prelude::ResMut};
 use bevy_xpbd_3d::prelude::*;
 #[derive(Default)]
-pub struct Level;
+pub struct LevelPlugin;
 #[derive(Resource)]
 pub struct Walls(Handle<Gltf>);
 #[derive(Component)]
 pub struct Wall;
 
-impl Plugin for Level {
+impl Plugin for LevelPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_systems(Startup, setup);
     }
@@ -32,7 +32,7 @@ fn setup(
     // plane
     commands
         .spawn(PbrBundle {
-            transform: Transform::from_xyz(0.0, 3.0, 0.0),
+            transform: Transform::from_xyz(0.0, 0.0, 0.0),
             mesh: meshes.add(shape::Plane::from_size(500.0).into()),
             material: materials.add(StandardMaterial {
                 base_color: Color::rgb(0.2, 1.0, 0.2),
@@ -173,9 +173,9 @@ impl<'w, 'c> WallSpawner<'w, 'c> {
             .insert(RigidBody::Static)
             .insert(Wall)
             .insert(Collider::cuboid(
-                self.wall_thickness / 2.0,
-                self.wall_height / 2.0,
-                self.wall_thickness / 2.0,
+                self.wall_thickness,
+                self.wall_height,
+                self.wall_thickness,
             ));
     }
     fn draw_horizontal_wall(&mut self, x: usize, y: usize) {
@@ -201,9 +201,9 @@ impl<'w, 'c> WallSpawner<'w, 'c> {
             .insert(RigidBody::Static)
             .insert(Wall)
             .insert(Collider::cuboid(
-                self.wall_length / 2.0,
-                self.wall_height / 2.0,
-                self.wall_thickness / 2.0,
+                self.wall_length,
+                self.wall_height,
+                self.wall_thickness,
             ));
     }
     pub fn draw_vertical_wall(&mut self, x: usize, y: usize) {
@@ -230,9 +230,9 @@ impl<'w, 'c> WallSpawner<'w, 'c> {
             .insert(RigidBody::Static)
             .insert(Wall)
             .insert(Collider::cuboid(
-                self.wall_length / 2.0,
-                self.wall_height / 2.0,
-                self.wall_thickness / 2.0,
+                self.wall_length,
+                self.wall_height,
+                self.wall_thickness,
             ));
     }
 }

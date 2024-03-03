@@ -16,7 +16,7 @@ pub fn spawn_player(commands: &mut Commands, assets: &ResMut<AssetServer>, x: f3
     commands
         .spawn(SceneBundle {
             scene: assets.load("Robot.gltf#Scene0"),
-            transform: Transform::from_xyz(x, 2.0, y),
+            transform: Transform::from_xyz(x, 1.5, y),
             ..Default::default()
         })
         .insert(input::input_bundle())
@@ -29,6 +29,6 @@ pub fn spawn_player(commands: &mut Commands, assets: &ResMut<AssetServer>, x: f3
         .insert(LinearVelocity(Vec3::new(0.0, 0.0, 0.0)))
         .insert(cc::CharacterControllerBundle::new(
             Collider::ball(0.5),
-            Vec3::new(0.0, 1.0, 0.0),
+            Vec3::new(0.0, -1.0, 0.0),
         ));
 }
