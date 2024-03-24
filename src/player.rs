@@ -12,7 +12,7 @@ pub struct Player {
     pub aim: f32,
 }
 
-pub fn spawn_player(commands: &mut Commands, assets: &ResMut<AssetServer>, x: f32, y: f32) {
+pub fn spawn_player(mut commands: &mut Commands, assets: &ResMut<AssetServer>, x: f32, y: f32) {
     commands
         .spawn(SceneBundle {
             scene: assets.load("Robot.gltf#Scene0"),

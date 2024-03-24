@@ -2,6 +2,7 @@ use std::f32::consts::PI;
 
 use crate::character_controller as cc;
 use crate::player;
+use crate::player::Player;
 use bevy::{
     input::gamepad::{GamepadAxisChangedEvent, GamepadButtonChangedEvent, GamepadButtonInput},
     prelude::*,
@@ -39,7 +40,24 @@ pub fn input_bundle() -> InputManagerBundle<Action> {
             (InputKind::Keyboard(KeyCode::Down), Action::AimDown),
             (InputKind::DualAxis(DualAxis::left_stick()), Action::Move),
             (InputKind::DualAxis(DualAxis::right_stick()), Action::Aim),
+            (InputKind::Keyboard(KeyCode::Space), Action::Shoot),
+            (
+                InputKind::GamepadButton(GamepadButtonType::RightTrigger),
+                Action::Shoot,
+            ),
         ]),
+    }
+}
+pub fn fire_gun(
+    mut commands: Commands,
+    assets: ResMut<AssetServer>,
+    mut query: Query<(&ActionState<Action>, &player::Player, &Transform)>,
+) {
+    if let (action, player, xform) = query.single() {
+        if action.just_pressed(Action::Shoot) {
+            let shot_direction = Vec3::new(-player.aim.cos(), 0.0, player.aim.sin());
+            crate::bullet::spawn_bullet(&mut commands, assets, shot_direction, xform);
+        }
     }
 }
 
@@ -93,7 +111,7 @@ pub fn move_player(
             aim = Quat::from_rotation_y(aim_y.atan2(aim_x));
         }
     }
-    player.aim = aim.to_euler(EulerRot::XYZ).1;
+    player.aim = aim.to_euler(EulerRot::YZX).0;
     xform.rotation = xform.rotation.slerp(aim, 0.1);
 }
 
