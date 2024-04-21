@@ -66,7 +66,6 @@ fn setup(
 
 fn spawn_walls(commands: Commands, assets: ResMut<AssetServer>) -> () {
     let mut maze = maze::Maze::new(30, 20);
-
     maze.add_walls();
     let mut ms = WallSpawner::new(commands, maze.height, maze.width, assets);
 
@@ -77,37 +76,38 @@ fn spawn_walls(commands: Commands, assets: ResMut<AssetServer>) -> () {
         ms.draw_horizontal_wall(i, 0);
         ms.draw_post(i, 0);
     }
-    ms.draw_vertical_wall(maze.width, 0);
+    ms.draw_post(maze.width, 0);
 
     for j in 0..maze.height {
         // Draw the bars.  One at the beginning, one at
         // the end, and one wherever there's an edge between
         // neighboring cells.
         ms.draw_vertical_wall(0, j);
+        ms.draw_post(0, j);
 
-        for i in 0..maze.width - 1 {
+        for i in 0..maze.width {
             let mut edges = 0;
 
             if maze.has_edge((i, j), (i + 1, j)) {
                 edges += 1;
                 ms.draw_vertical_wall(i + 1, j);
             }
+
             if maze.has_edge((i, j), (i, j + 1)) {
                 edges += 1;
                 ms.draw_horizontal_wall(i, j + 1);
             }
-            if i > 0 && maze.has_edge((i, j + 1), (i + 1, j + 1)) {
+            if maze.has_edge((i, j + 1), (i + 1, j + 1)) {
                 edges += 1;
             }
-            if j > 0 && maze.has_edge((i + 1, j), (i + 1, j + 1)) {
+            if maze.has_edge((i + 1, j), (i + 1, j + 1)) {
                 edges += 1;
             }
-            if edges > 1 || i == 0 || j == 0 || i == maze.width - 1 || j == maze.height - 1 {
+            if edges > 1 {
                 ms.draw_post(i + 1, j + 1);
             }
         }
         ms.draw_post(maze.width, j);
-        ms.draw_post(0, j);
         ms.draw_vertical_wall(maze.width, j);
     }
     // Draw the top row
