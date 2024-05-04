@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{core_pipeline::core_3d::Camera3dDepthLoadOp, prelude::*};
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_3d::{plugins::debug::PhysicsDebugPlugin, prelude::*};
 use leafwing_input_manager::prelude::InputManagerPlugin;
@@ -17,9 +17,12 @@ fn main() {
         .add_plugins(InputManagerPlugin::<input::Action>::default())
         .add_plugins(PhysicsPlugins::default())
         .add_plugins(character_controller::CharacterControllerPlugin)
+        .add_systems(Startup, player::spawn_player_ui)
         .add_systems(Update, input::move_player)
+        .add_systems(Update, player::update_player_ui)
         .add_systems(Update, input::move_camera)
         .add_systems(Update, input::fire_gun)
         .add_systems(Update, bullet::hit_bullet)
+        .add_systems(Update, player::regen_ammo)
         .run();
 }

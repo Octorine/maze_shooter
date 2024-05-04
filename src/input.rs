@@ -51,12 +51,13 @@ pub fn input_bundle() -> InputManagerBundle<Action> {
 pub fn fire_gun(
     mut commands: Commands,
     assets: ResMut<AssetServer>,
-    mut query: Query<(&ActionState<Action>, &player::Player, &Transform)>,
+    mut query: Query<(&ActionState<Action>, &mut player::Player, &Transform)>,
 ) {
-    if let (action, player, xform) = query.single() {
-        if action.just_pressed(Action::Shoot) {
+    if let (action, mut player, xform) = query.single_mut() {
+        if action.just_pressed(Action::Shoot) && player.ammunition > 0 {
             let shot_direction = Vec3::new(-player.aim.cos(), 0.0, player.aim.sin());
             crate::bullet::spawn_bullet(&mut commands, assets, shot_direction, xform);
+            player.ammunition -= 1;
         }
     }
 }
