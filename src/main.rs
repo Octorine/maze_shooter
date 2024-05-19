@@ -6,9 +6,11 @@ use maze::Maze;
 use std::f32::consts::PI;
 mod bullet;
 mod character_controller;
+mod enemy;
 mod input;
 mod level;
 mod player;
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
