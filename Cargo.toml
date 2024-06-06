@@ -15,8 +15,8 @@ opt-level = 3
 [dependencies]
 bevy = "0.12.1"
 bevy-inspector-egui = "0.22"
-bevy_xpbd_3d = "0.3.2"
+bevy_xpbd_3d = "0.3.0"
 leafwing-input-manager = "0.11.1"
 maze = {git = "https://github.com/octorine/maze.git"}
-oxidized_navigation = "0.10.0"
+oxidized_navigation = { version = "0.9.0", features = ["xpbd", "debug_draw"] }
 rand = "0.8.5"

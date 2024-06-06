@@ -151,7 +151,7 @@ fn update_grounded(
         });
 
         if is_grounded {
-            commands.entity(entity).insert(Grounded);
+            commands.entity(entity).try_insert(Grounded);
         } else {
             commands.entity(entity).remove::<Grounded>();
         }

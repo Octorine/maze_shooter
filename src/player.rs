@@ -1,5 +1,7 @@
 use crate::character_controller as cc;
 use crate::input;
+use bevy::diagnostic::DiagnosticsStore;
+use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
 use bevy_xpbd_3d::prelude::*;
 
@@ -32,10 +34,24 @@ pub fn spawn_player(mut commands: &mut Commands, assets: &ResMut<AssetServer>, x
             Vec3::new(0.0, -1.0, 0.0),
         ));
 }
-pub fn update_player_ui(mut txt_query: Query<&mut Text>, player_query: Query<&Player>) {
+pub fn update_player_ui(
+    mut txt_query: Query<&mut Text>,
+    player_query: Query<&Player>,
+    diagnostics: Res<DiagnosticsStore>,
+) {
+    let fps;
+    if let Some(value) = diagnostics
+        .get(FrameTimeDiagnosticsPlugin::FPS)
+        .and_then(|fps| fps.smoothed())
+        .map(|smoothed| smoothed.round())
+    {
+        fps = value.to_string();
+    } else {
+        fps = String::from("Unknown");
+    }
     let p = player_query.single();
     let mut txt = txt_query.single_mut();
-    txt.sections[0].value = format!("{} Bullets", p.ammunition);
+    txt.sections[0].value = format!("{} Bullets\t {} FPS", p.ammunition, fps);
 }
 pub fn regen_ammo(time: Res<Time>, mut query: Query<&mut Player>) {
     let mut player = query.single_mut();

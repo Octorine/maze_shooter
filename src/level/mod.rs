@@ -4,6 +4,8 @@ use bevy::gltf::Gltf;
 use bevy::prelude::*;
 use bevy::{ecs::system::Commands, prelude::ResMut};
 use bevy_xpbd_3d::prelude::*;
+use oxidized_navigation::debug_draw::{DrawNavMesh, DrawPath};
+use oxidized_navigation::NavMeshAffector;
 use rand::Rng;
 
 const wall_length: f32 = 4.0;
@@ -28,7 +30,10 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
     assets: ResMut<AssetServer>,
+    time: Res<Time>,
+    mut draw_mesh: ResMut<DrawNavMesh>,
 ) {
+    //draw_mesh.0 = true;
     let maze_width = 30;
     let maze_height = 20;
     // camera
@@ -47,7 +52,7 @@ fn setup(
         }
         let enemy_x = enemy_x as f32 * (wall_length + wall_thickness);
         let enemy_y = enemy_y as f32 * (wall_length + wall_thickness);
-        crate::enemy::spawn_enemy(&mut commands, &assets, enemy_x + 3.5, enemy_y + 3.5);
+        crate::enemy::spawn_enemy(&mut commands, &assets, &time, enemy_x + 3.5, enemy_y + 3.5);
     }
     // plane
     commands
@@ -62,6 +67,7 @@ fn setup(
             ..default()
         })
         .insert(RigidBody::Static)
+        .insert(NavMeshAffector)
         .insert(Collider::cuboid(500.0, 0.01, 500.0));
     commands.spawn(DirectionalLightBundle {
         directional_light: DirectionalLight {
@@ -185,6 +191,7 @@ impl<'w, 'c> WallSpawner<'w, 'c> {
                 ..Default::default()
             })
             .insert(RigidBody::Static)
+            .insert(NavMeshAffector)
             .insert(Wall)
             .insert(Collider::cuboid(
                 wall_thickness,
@@ -212,6 +219,7 @@ impl<'w, 'c> WallSpawner<'w, 'c> {
             })
             .insert(RigidBody::Static)
             .insert(Wall)
+            .insert(NavMeshAffector)
             .insert(Collider::cuboid(wall_length, wall_height, wall_thickness));
     }
     pub fn draw_vertical_wall(&mut self, x: usize, y: usize) {
@@ -235,6 +243,7 @@ impl<'w, 'c> WallSpawner<'w, 'c> {
             })
             .insert(RigidBody::Static)
             .insert(Wall)
+            .insert(NavMeshAffector)
             .insert(Collider::cuboid(wall_length, wall_height, wall_thickness));
     }
 }
