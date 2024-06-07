@@ -3,17 +3,20 @@ use bevy::{
 };
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_xpbd_3d::{plugins::debug::PhysicsDebugPlugin, prelude::*};
+use fps::ShowFps;
 use leafwing_input_manager::prelude::InputManagerPlugin;
 use oxidized_navigation::{NavMeshAffector, NavMeshSettings, OxidizedNavigationPlugin};
 mod bullet;
 mod character_controller;
 mod enemy;
+mod fps;
 mod input;
 mod level;
 mod player;
 
 fn main() {
     App::new()
+        .insert_resource(ShowFps(false))
         .add_plugins((
             DefaultPlugins,
             //WorldInspectorPlugin::new(),
@@ -44,13 +47,14 @@ fn main() {
         .add_systems(
             Update,
             (
-                input::move_player,
-                player::update_player_ui,
-                input::move_camera,
-                input::fire_gun,
                 bullet::hit_bullet,
-                player::regen_ammo,
                 enemy::move_enemy,
+                input::fire_gun,
+                input::move_camera,
+                input::move_player,
+                input::toggle_fps,
+                player::regen_ammo,
+                player::update_player_ui,
             ),
         )
         .run();

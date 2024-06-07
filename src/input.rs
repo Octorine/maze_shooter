@@ -1,6 +1,7 @@
 use std::f32::consts::PI;
 
 use crate::character_controller as cc;
+use crate::fps::ShowFps;
 use crate::player;
 use crate::player::Player;
 use bevy::{
@@ -23,6 +24,7 @@ pub enum Action {
     Shoot,
     Aim,
     Move,
+    ToggleFps,
 }
 
 pub fn input_bundle() -> InputManagerBundle<Action> {
@@ -45,7 +47,18 @@ pub fn input_bundle() -> InputManagerBundle<Action> {
                 InputKind::GamepadButton(GamepadButtonType::RightTrigger),
                 Action::Shoot,
             ),
+            (InputKind::Keyboard(KeyCode::F), Action::ToggleFps),
         ]),
+    }
+}
+pub fn toggle_fps(
+    mut show_fps: ResMut<ShowFps>,
+    query: Query<(&ActionState<Action>, &player::Player)>,
+) {
+    if let (action, _) = query.single() {
+        if action.just_pressed(Action::ToggleFps) {
+            show_fps.0 = !show_fps.0;
+        }
     }
 }
 pub fn fire_gun(

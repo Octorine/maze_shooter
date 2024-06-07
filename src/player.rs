@@ -1,4 +1,5 @@
 use crate::character_controller as cc;
+use crate::fps::ShowFps;
 use crate::input;
 use bevy::diagnostic::DiagnosticsStore;
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
@@ -38,6 +39,7 @@ pub fn update_player_ui(
     mut txt_query: Query<&mut Text>,
     player_query: Query<&Player>,
     diagnostics: Res<DiagnosticsStore>,
+    show_fps: Res<ShowFps>,
 ) {
     let fps;
     if let Some(value) = diagnostics
@@ -51,7 +53,11 @@ pub fn update_player_ui(
     }
     let p = player_query.single();
     let mut txt = txt_query.single_mut();
-    txt.sections[0].value = format!("{} Bullets\t {} FPS", p.ammunition, fps);
+    if show_fps.0 {
+        txt.sections[0].value = format!("{} Bullets\t {} FPS", p.ammunition, fps);
+    } else {
+        txt.sections[0].value = format!("{} Bullets", p.ammunition);
+    }
 }
 pub fn regen_ammo(time: Res<Time>, mut query: Query<&mut Player>) {
     let mut player = query.single_mut();
