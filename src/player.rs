@@ -41,19 +41,19 @@ pub fn update_player_ui(
     diagnostics: Res<DiagnosticsStore>,
     show_fps: Res<ShowFps>,
 ) {
-    let fps;
-    if let Some(value) = diagnostics
-        .get(FrameTimeDiagnosticsPlugin::FPS)
-        .and_then(|fps| fps.smoothed())
-        .map(|smoothed| smoothed.round())
-    {
-        fps = value.to_string();
-    } else {
-        fps = String::from("Unknown");
-    }
     let p = player_query.single();
     let mut txt = txt_query.single_mut();
     if show_fps.0 {
+        let fps;
+        if let Some(value) = diagnostics
+            .get(FrameTimeDiagnosticsPlugin::FPS)
+            .and_then(|fps| fps.smoothed())
+            .map(|smoothed| smoothed.round())
+        {
+            fps = value.to_string();
+        } else {
+            fps = String::from("Unknown");
+        }
         txt.sections[0].value = format!("{} Bullets\t {} FPS", p.ammunition, fps);
     } else {
         txt.sections[0].value = format!("{} Bullets", p.ammunition);
