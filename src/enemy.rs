@@ -61,7 +61,7 @@ pub fn move_enemy(
     let (_, player_xform) = player_query.single();
     let binding = navigation.get();
     if let tileset = binding.try_read() {
-        for (mut enemy, mut velocity, enemy_xform) in enemy_query.iter_mut() {
+        for (mut enemy, mut velocity, mut enemy_xform) in enemy_query.iter_mut() {
             if time.elapsed_seconds() - enemy.last_path_set > ENEMY_PATH_PERIOD {
                 let enemy_pos = enemy_xform.translation;
                 let player_pos = player_xform.translation;
@@ -98,6 +98,11 @@ pub fn move_enemy(
                 enemy.last_path_set = time.elapsed_seconds();
                 enemy.current_path = heading;
                 velocity.0 = enemy.current_path * ENEMY_SPEED;
+            }
+            let heading = enemy.current_path;
+            if heading.x.abs() > 0.0 {
+                let heading_angle = heading.x.atan2(heading.z);
+                enemy_xform.rotation = Quat::from_rotation_y(heading_angle);
             }
         }
     };
