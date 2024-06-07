@@ -75,7 +75,7 @@ pub fn move_player(
 
     // Each action has a button-like state of its own that you can check
     let mut xlat = Vec3::new(0.0, 0.0, 0.0);
-    let speed = 500.0;
+    let speed = 300.0;
     if action_state.pressed(Action::MoveUp) {
         xlat.z += 1.0;
     }

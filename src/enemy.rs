@@ -7,7 +7,7 @@ use oxidized_navigation::debug_draw::DrawPath;
 use oxidized_navigation::query::find_path;
 use oxidized_navigation::NavMesh;
 use oxidized_navigation::NavMeshSettings;
-const ENEMY_SPEED: f32 = 8.0;
+const ENEMY_SPEED: f32 = 10.0;
 const ENEMY_PATH_PERIOD: f32 = 0.4;
 #[derive(Component)]
 pub struct Enemy {
