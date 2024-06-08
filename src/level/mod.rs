@@ -4,6 +4,7 @@ use bevy::gltf::Gltf;
 use bevy::prelude::*;
 use bevy::{ecs::system::Commands, prelude::ResMut};
 use bevy_xpbd_3d::prelude::*;
+use maze::Edge;
 use oxidized_navigation::debug_draw::{DrawNavMesh, DrawPath};
 use oxidized_navigation::NavMeshAffector;
 use rand::Rng;
@@ -101,6 +102,14 @@ fn spawn_walls(
 ) -> () {
     let mut maze = maze::Maze::new(maze_width, maze_height);
     maze.add_walls();
+    let mut edge_vec: Vec<Edge> = maze.edges.iter().cloned().collect::<Vec<Edge>>();
+    for _ in 1..10 {
+        let mut rng = rand::thread_rng();
+        let index = rng.gen_range(0..edge_vec.len() - 1);
+        edge_vec.remove(index);
+        maze.edges.remove(&edge_vec[index]);
+    }
+
     let mut ms = WallSpawner::new(commands, maze.height, maze.width, assets);
 
     // Draw the top row
@@ -114,7 +123,7 @@ fn spawn_walls(
 
     for j in 0..maze.height {
         // Draw the bars.  One at the beginning, one at
-        // the end, and one wherever there's an edge between
+        // the end, and one whenrever there's an edge between
         // neighboring cells.
         ms.draw_vertical_wall(0, j);
         ms.draw_post(0, j);
