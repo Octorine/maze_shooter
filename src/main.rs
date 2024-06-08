@@ -47,12 +47,16 @@ fn main() {
             PhysicsPlugins::default(),
             character_controller::CharacterControllerPlugin,
         ))
-        .add_systems(Startup, player::spawn_player_ui)
+        .add_systems(
+            Startup,
+            (player::spawn_player_ui, enemy::setup_walk_animation),
+        )
         .add_systems(
             Update,
             (
                 bullet::hit_bullet,
                 enemy::move_enemy,
+                enemy::start_walk_animation,
                 input::fire_gun,
                 input::move_camera,
                 input::move_player,

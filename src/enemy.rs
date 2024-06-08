@@ -22,6 +22,10 @@ pub struct Enemy {
     current_path: Vec3,
     last_path_set: f32,
 }
+
+#[derive(Resource, Clone)]
+pub struct WalkAnimation(pub Handle<AnimationClip>);
+
 pub fn spawn_enemy(
     mut commands: &mut Commands,
     assets: &ResMut<AssetServer>,
@@ -56,6 +60,20 @@ pub fn spawn_enemy(
             Vec3::new(0.0, -1.0, 0.0),
         ));
 }
+
+pub fn setup_walk_animation(mut commands: Commands, assets: ResMut<AssetServer>) {
+    let walk_animation = WalkAnimation(assets.load("Bug.glb#Animation0"));
+    commands.insert_resource(walk_animation);
+}
+pub fn start_walk_animation(
+    animation: Res<WalkAnimation>,
+    mut players: Query<&mut AnimationPlayer, Added<AnimationPlayer>>,
+) {
+    for mut player in &mut players.iter_mut() {
+        player.play(animation.0.clone_weak()).repeat();
+    }
+}
+
 pub fn move_enemy(
     player_query: Query<(&player::Player, &Transform), Without<Enemy>>,
     mut enemy_query: Query<
