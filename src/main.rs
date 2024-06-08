@@ -17,6 +17,10 @@ mod player;
 fn main() {
     App::new()
         .insert_resource(ShowFps(false))
+        .insert_resource(enemy::EnemyCounts {
+            count: enemy::enemies_to_spawn,
+            killed: 0,
+        })
         .add_plugins((
             DefaultPlugins,
             //WorldInspectorPlugin::new(),

@@ -9,6 +9,14 @@ use oxidized_navigation::NavMesh;
 use oxidized_navigation::NavMeshSettings;
 const ENEMY_SPEED: f32 = 10.0;
 const ENEMY_PATH_PERIOD: f32 = 0.4;
+pub const enemies_to_spawn: i32 = 40;
+
+#[derive(Resource)]
+pub struct EnemyCounts {
+    pub count: i32,
+    pub killed: i32,
+}
+
 #[derive(Component)]
 pub struct Enemy {
     current_path: Vec3,

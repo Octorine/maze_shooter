@@ -1,4 +1,5 @@
 use crate::character_controller as cc;
+use crate::enemy::EnemyCounts;
 use crate::fps::ShowFps;
 use crate::input;
 use bevy::diagnostic::DiagnosticsStore;
@@ -40,6 +41,7 @@ pub fn update_player_ui(
     player_query: Query<&Player>,
     diagnostics: Res<DiagnosticsStore>,
     show_fps: Res<ShowFps>,
+    enemy_counts: Res<EnemyCounts>,
 ) {
     let p = player_query.single();
     let mut txt = txt_query.single_mut();
@@ -54,9 +56,15 @@ pub fn update_player_ui(
         } else {
             fps = String::from("Unknown");
         }
-        txt.sections[0].value = format!("{} Bullets\t {} FPS", p.ammunition, fps);
+        txt.sections[0].value = format!(
+            "{} Bullets\n{} of {} enemies killed\n{} FPS",
+            p.ammunition, enemy_counts.killed, enemy_counts.count, fps
+        );
     } else {
-        txt.sections[0].value = format!("{} Bullets", p.ammunition);
+        txt.sections[0].value = format!(
+            "{} Bullets\n{} of {} enemies killed",
+            p.ammunition, enemy_counts.killed, enemy_counts.count,
+        );
     }
 }
 pub fn regen_ammo(time: Res<Time>, mut query: Query<&mut Player>) {

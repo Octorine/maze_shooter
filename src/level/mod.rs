@@ -8,6 +8,8 @@ use oxidized_navigation::debug_draw::{DrawNavMesh, DrawPath};
 use oxidized_navigation::NavMeshAffector;
 use rand::Rng;
 
+use crate::enemy::{self, EnemyCounts};
+
 const wall_length: f32 = 4.0;
 const wall_height: f32 = 6.0;
 const wall_thickness: f32 = 1.0;
@@ -32,6 +34,7 @@ fn setup(
     assets: ResMut<AssetServer>,
     time: Res<Time>,
     mut draw_mesh: ResMut<DrawNavMesh>,
+    enemy_counts: ResMut<EnemyCounts>,
 ) {
     //draw_mesh.0 = true;
     let maze_width = 30;
@@ -43,7 +46,7 @@ fn setup(
     });
     crate::player::spawn_player(&mut commands, &assets, 3.5, 3.5);
     let mut rng = rand::thread_rng();
-    for enemy_num in 1..20 {
+    for enemy_num in 1..enemy::enemies_to_spawn {
         let mut enemy_x: i32 = 0;
         let mut enemy_y: i32 = 0;
         while (enemy_x.abs() < 3 && enemy_y.abs() < 3) {
